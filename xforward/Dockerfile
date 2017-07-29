@@ -4,14 +4,15 @@ FROM ${BASE_DEBIAN_IMAGE}
 
 RUN apt-get update && \
     apt-get install -y openssh-server xauth sudo && \
-    mkdir -p /var/run/sshd
+    rm -rf /var/lib/apt/lists/*
 
 RUN useradd -m user && \
     usermod -aG sudo user && \
     chsh -s /bin/bash user && \
     chsh -s /bin/bash user && \
     echo root:password | chpasswd && \
-    echo user:password | chpasswd
+    echo user:password | chpasswd && \
+    mkdir -p /var/run/sshd
 
 RUN echo PermitRootLogin yes >> /etc/ssh/sshd_config && \
     echo AllowTcpForwarding yes >> /etc/ssh/sshd_config && \
