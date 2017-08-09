@@ -6,7 +6,8 @@ RUN apt-get update && \
     apt-get install -y openssh-server xauth sudo && \
     rm -rf /var/lib/apt/lists/*
 
-RUN useradd -m user && \
+RUN groupadd -g 5000 user && \
+    useradd -u 5000 -g 5000 -m user && \
     usermod -aG sudo user && \
     chsh -s /bin/bash user && \
     chsh -s /bin/bash user && \
