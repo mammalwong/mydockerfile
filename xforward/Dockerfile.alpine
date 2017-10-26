@@ -1,0 +1,24 @@
+ARG BASE_ALPINE_IMAGE=alpine:3.6
+
+FROM ${BASE_ALPINE_IMAGE}
+
+RUN apk add --no-cache openssh-server xauth sudo dumb-init dbus
+
+RUN addgroup -S sudo && \
+    echo "%sudo ALL=(ALL) ALL" > /etc/sudoers.d/sudo-group && \
+    adduser -u 5000 -s /bin/ash -D user && \
+    addgroup -S user sudo && \
+    echo root:password | chpasswd && \
+    echo user:password | chpasswd && \
+    ssh-keygen -A && \
+    mkdir -p /var/run/sshd
+
+RUN echo PermitRootLogin yes >> /etc/ssh/sshd_config && \
+    echo AllowTcpForwarding yes >> /etc/ssh/sshd_config && \
+    echo X11Forwarding yes >> /etc/ssh/sshd_config && \
+    echo X11DisplayOffset 10 >> /etc/ssh/sshd_config && \
+    echo X11UseLocalhost no >> /etc/ssh/sshd_config && \
+    echo Ciphers 3des-cbc,blowfish-cbc,cast128-cbc,arcfour,arcfour128,arcfour256,aes128-cbc,aes192-cbc,aes256-cbc,rijndael-cbc@lysator.liu.se,aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com,chacha20-poly1305@openssh.com >> /etc/ssh/sshd_config
+
+ENTRYPOINT ["dumb-init"]
+CMD ["/usr/sbin/sshd", "-D"]
