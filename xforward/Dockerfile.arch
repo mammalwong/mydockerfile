@@ -1,0 +1,30 @@
+ARG BASE_ARCH_IMAGE=base/archlinux:latest
+
+FROM ${BASE_ARCH_IMAGE}
+
+RUN pacman -Syu && \
+    pacman -S --noconfirm openssh xorg-xauth sudo wget && \
+    pacman -Sc --noconfirm && \
+    wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 && \
+    chmod +x /usr/local/bin/dumb-init
+
+RUN groupadd -r sudo && \
+    echo "%sudo ALL=(ALL) ALL" > /etc/sudoers.d/sudo-group && \
+    groupadd -g 5000 user && \
+    useradd -u 5000 -g 5000 -m user && \
+    usermod -aG sudo user && \
+    chsh -s /bin/bash user && \
+    chsh -s /bin/bash user && \
+    echo root:password | chpasswd && \
+    echo user:password | chpasswd && \
+    ssh-keygen -A && \
+    mkdir -p /var/run/sshd
+
+RUN echo PermitRootLogin yes >> /etc/ssh/sshd_config && \
+    echo AllowTcpForwarding yes >> /etc/ssh/sshd_config && \
+    echo X11Forwarding yes >> /etc/ssh/sshd_config && \
+    echo X11DisplayOffset 10 >> /etc/ssh/sshd_config && \
+    echo X11UseLocalhost no >> /etc/ssh/sshd_config
+
+ENTRYPOINT ["dumb-init"]
+CMD ["/usr/sbin/sshd", "-D"]
